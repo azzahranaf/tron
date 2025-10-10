@@ -48,8 +48,10 @@ setwd(master)
 path_code = file.path(getwd(),"4 QCoder","codes")
 path_doc = file.path(getwd(),"4 QCoder","documents")
 path_memo = file.path(getwd(),"4 QCoder","memos")
-path_pdf = file.path(getwd(), "1 Transcript (PDF)")
+path_tf = file.path(getwd(), "1 Transcript files")
 path_sheet = file.path(getwd(), "3 NLM initial coding", "2 Code snippet (sheet)")
+path_ct = file.path(getwd(),"5 Coded transcript","1 Initial autotagging R")
+
 
 #### Install QCoder for QDA ####
 
@@ -188,7 +190,7 @@ for (fgd_num in seq_along(fgd_files)) {
     filter(group == paste0("FGD", fgd_num))
   
   # Load transcript
-  transcript_path <- file.path(path_doc, paste0(fgd_files[fgd_num], ".txt"))
+  transcript_path <- file.path(path_tf, paste0(fgd_files[fgd_num], ".txt"))
   
   if (!file.exists(transcript_path)) {
     warning("File not found: ", transcript_path)
@@ -203,6 +205,7 @@ for (fgd_num in seq_along(fgd_files)) {
   codes <- codes %>%
     mutate(
       snippet = normalize_text(snippet),
+      snippet = str_replace_all(snippet, '^"|"$', ""),   # remove starting or ending quote
       snippet = escape_regex(snippet),
       snippet_length = nchar(snippet)
     ) %>%
@@ -212,7 +215,7 @@ for (fgd_num in seq_along(fgd_files)) {
   # Initialize
   working_transcript <- transcript_text
   log_results <- data.frame(
-    code_id = character(),
+    code = character(),
     snippet = character(),
     method = character(),
     stringsAsFactors = FALSE
@@ -220,16 +223,13 @@ for (fgd_num in seq_along(fgd_files)) {
   
   # Loop over codes
   for (i in seq_len(nrow(codes))) {
-    res <- add_qcoder_tag(working_transcript, codes$code_id[i], codes$snippet[i])
-    #safe_snippet <- escape_regex(codes$snippet[i])
-    #res <- add_qcoder_tag(working_transcript, codes$code_id[i], safe_snippet)
-    
+    res <- add_qcoder_tag(working_transcript, codes$code[i], codes$snippet[i])
     
     working_transcript <- res$text
     log_results <- rbind(
       log_results,
       data.frame(
-        code_id = codes$code_id[i],
+        code = codes$code[i],
         snippet = codes$snippet[i],
         method = res$method,
         stringsAsFactors = FALSE
@@ -240,12 +240,17 @@ for (fgd_num in seq_along(fgd_files)) {
   # Write tagged transcript
   path_tagged <- file.path(path_doc, paste0("Tagged ", fgd_files[fgd_num], ".txt"))
   writeLines(working_transcript, path_tagged, useBytes = TRUE)
+
+  # Write tagged transcript (copy for archive)
+  path_tagged <- file.path(path_ct, paste0("Tagged ", fgd_files[fgd_num], ".txt"))
+  writeLines(working_transcript, path_tagged, useBytes = TRUE)
   
+    
   # Save log
   write.csv(
     log_results,
-    file.path(path_memo, paste0("Tagging log_FGD ", fgd_num, ".csv")),
-    row.names = FALSE
+    file.path(path_memo, paste0("Tagging log_FGD ", fgd_num, ".xlsx")),
+    #row.names = FALSE
   )
 }
 
@@ -268,9 +273,10 @@ for (idi_num in seq_along(idi_files)) {
   # Load codes
   codes <- read.csv(file.path(path_code, "snippet for autotagging.csv")) %>%
     filter(group == paste0("IDI", idi_num))
+    
   
   # Load transcript
-  transcript_path <- file.path(path_doc, paste0(idi_files[idi_num], ".txt"))
+  transcript_path <- file.path(path_tf, paste0(idi_files[idi_num], ".txt"))
   
   if (!file.exists(transcript_path)) {
     warning("File not found: ", transcript_path)
@@ -285,6 +291,7 @@ for (idi_num in seq_along(idi_files)) {
   codes <- codes %>%
     mutate(
       snippet = normalize_text(snippet),
+      snippet = str_replace_all(snippet, '^"|"$', ""),   # remove starting or ending quote
       snippet = escape_regex(snippet),
       snippet_length = nchar(snippet)
     ) %>%
@@ -294,7 +301,7 @@ for (idi_num in seq_along(idi_files)) {
   # Initialize
   working_transcript <- transcript_text
   log_results <- data.frame(
-    code_id = character(),
+    code = character(),
     snippet = character(),
     method = character(),
     stringsAsFactors = FALSE
@@ -302,7 +309,7 @@ for (idi_num in seq_along(idi_files)) {
   
   # Loop over codes
   for (i in seq_len(nrow(codes))) {
-    res <- add_qcoder_tag(working_transcript, codes$code_id[i], codes$snippet[i])
+    res <- add_qcoder_tag(working_transcript, codes$code[i], codes$snippet[i])
     #safe_snippet <- escape_regex(codes$snippet[i])
     #res <- add_qcoder_tag(working_transcript, codes$code_id[i], safe_snippet)
     
@@ -311,7 +318,7 @@ for (idi_num in seq_along(idi_files)) {
     log_results <- rbind(
       log_results,
       data.frame(
-        code_id = codes$code_id[i],
+        code = codes$code[i],
         snippet = codes$snippet[i],
         method = res$method,
         stringsAsFactors = FALSE
@@ -322,6 +329,11 @@ for (idi_num in seq_along(idi_files)) {
   # Write tagged transcript
   path_tagged <- file.path(path_doc, paste0("Tagged ", idi_files[idi_num], ".txt"))
   writeLines(working_transcript, path_tagged, useBytes = TRUE)
+  
+  # Write tagged transcript (copy for archive)
+  path_tagged <- file.path(path_ct, paste0("Tagged ", idi_files[idi_num], ".txt"))
+  writeLines(working_transcript, path_tagged, useBytes = TRUE)
+  
   
   # Save log
   write_xlsx(
@@ -341,6 +353,9 @@ for (idi_num in seq_along(idi_files)) {
 library(qcoder)
 
 import_project_data(project = "4 QCoder")
+#qproject <- read_qproject(file.path(getwd(),"4 QCoder"))
+
+qcode("4 QCoder")
 
 # Open QCoder
 qcode()

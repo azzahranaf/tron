@@ -63,7 +63,7 @@ sheet_names <- excel_sheets(path = file_path)
 coding_data <- map_df(sheet_names, ~read_excel(path = file_path, sheet = .x), .id = "sheet_name")
 
 # View the first few rows of the combined data to confirm it worked
-head(combined_data)
+head(coding_data)
 
 
 ################ CREATING A NEW CODE_ID FOR ALL THE CODES ###############
@@ -77,12 +77,23 @@ combined_data <- coding_data %>%
     id = as.numeric(factor(group_code, levels = unique(group_code)))
   ) 
 
-# exporting codes
+# exporting codes for qcoder
 codes_df <- combined_data %>%
   distinct(id, code, code_description) %>%
-  rename(code_id = id)
+  rename(code_id = id,
+         code.description = code_description)
 
 write.csv(codes_df, file.path(path_code, "codes.csv"), row.names = FALSE)
+
+# exporting codes + snippet for merging codes
+codesnippet_df <- combined_data %>%
+  distinct(id, code, code_description, snippet) %>%
+  rename(code_id = id,
+         code.description = code_description)
+
+write.csv(codesnippet_df, file.path(path_code, "codes_snippet.xlsx"))
+
+
 
 # exporting all codes data for tagging
 tagging_df <- combined_data %>%
