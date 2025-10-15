@@ -63,7 +63,7 @@ sheet_names <- excel_sheets(path = file_path)
 coding_data <- map_df(sheet_names, ~read_excel(path = file_path, sheet = .x), .id = "sheet_name")
 
 # View the first few rows of the combined data to confirm it worked
-head(coding_data)
+#head(coding_data)
 
 
 ################ CREATING A NEW CODE_ID FOR ALL THE CODES ###############

@@ -9,10 +9,6 @@
 
 ############################ Environment setup #################################
 
-
-############################ Environment setup #################################
-
-
 # Clear console and environment 
 graphics.off(); rm(list=ls());cat("\14");
 
@@ -355,13 +351,47 @@ library(qcoder)
 import_project_data(project = "4 QCoder")
 #qproject <- read_qproject(file.path(getwd(),"4 QCoder"))
 
-qcode("4 QCoder")
-
 # Open QCoder
+#qcode("4 QCoder")
+
 qcode()
 
 # Next steps
 ## 1. Open qcode and check initial code frequency
 ## 2. Manual tagging all snippets that is "missed" by tagging log (for all transcripts)
-## 3. Check the initial code, is there any codes that can be merged
-## 4. Adjust the coding
+
+
+########################## EXPORT CODE FREQUENCY (FAILED) ###################################
+
+# Install supporting package
+packageVersion("qcoder")
+
+install.packages("remotes")
+#remotes::install_github("ccodwg/qcoder")
+remotes::install_github("ropenscilabs/qcoder")
+
+library(qcoder)
+
+
+proj_path <- file.path(master, "4 QCoder")
+
+# Export from data_frame
+rds_path <- file.path(master, "4 QCoder", "data_frames")
+
+rds_files <- list.files(rds_path, pattern = "\\.rds$", full.names = TRUE)
+rds_files
+
+doc1 <- readRDS(file.path(rds_path, "qcoder_documents_4 QCoder_2025_10_14_19_19_56.484408.rds"))
+str(doc1)
+
+doc2 <- readRDS(file.path(rds_path, "qcoder_units_4 QCoder.rds"))
+str(doc2)
+
+doc3 <- readRDS(file.path(rds_path, "qcoder_unit_document_map_4 QCoder.rds"))
+str(doc3)
+
+doc4 <- readRDS(file.path(rds_path, "qcoder_documents_4 QCoder_2025_10_14_19_17_02.665225.rds"))
+str(doc4)
+
+
+
